@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Client data and generated outputs — never commit these
+data/
+output/
+*.xlsx
+*.xls
+*.pdf
+*.docx
+*.doc
+*.csv
+
+# Browser profiles / automation state
+.edgeprofile*/
+.edgeprofile*
+*profile*/
+
+# Archives and local installers
+*.zip
+*.log

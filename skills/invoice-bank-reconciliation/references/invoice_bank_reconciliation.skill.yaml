@@ -1,0 +1,149 @@
+# ====================== Frontmatter 强制头信息(文件最开头) ======================
+frontmatter:
+  skill_id: skill_fin_core_001
+  skill_name: 发票银行流水核心对账引擎(XML数电票+PDF-OCR)
+  version: 1.4.0
+  author: 财税自动化智能体
+  create_date: 2026-07-18
+  update_date: 2026-07-18
+  category: 财税票据自动核销
+  runtime_env: 本地离线解析，无云端上传
+  dependency: pandas, openpyxl, fitz, pytesseract, lxml, fuzzywuzzy
+  security_level: 票据原始文件、OCR缓存、XML数据仅本地存储，自动清理临时文件
+  data_path:
+    invoice_input: ./data/invoice_data/
+    bank_flow_input: ./data/bank_flow/
+    result_output: ./data/reconciliation_result/
+    ocr_temp: ./data/cache_ocr/
+    ocr_fail: ./data/invoice_ocr_fail/
+  description: 轻量化核心对账Skill，优先解析数电票XML(最高准确率)，次选原生PDF文本，扫描PDF兜底OCR；发票与银行流水多维度自动匹配，输出匹配明细、未匹配、风险清单，移除非必要扩展逻辑，执行速度大幅提升
+  tag: ["数电票XML解析","PDF-OCR","银票自动对账","轻量化核心引擎","财税风险识别"]
+# ==========================================================================
+
+# 1 全局核心匹配参数（仅保留必备配置）
+global_config:
+  amount_tolerance: 0.01
+  name_fuzzy_min_score: 85
+  date_match_range: 30
+  split_tax_match: true
+  clear_temp_cache_after_run: true
+
+# 2 数据源 & 双解析扩展：XML数电票优先 + PDF-OCR兜底
+data_source:
+  invoice:
+    support_suffix: [xlsx, pdf, xml]
+    priority_parse_order: ["xml", "native_pdf", "scan_pdf_ocr"] # 优先级：XML>原生PDF>扫描OCR
+    required_fields:
+      - invoice_no
+      - buyer_name
+      - seller_name
+      - buyer_tax_id
+      - invoice_date
+      - amt_ex_tax
+      - tax_amt
+      - total_amt
+      - remark
+
+    # 扩展1：数电票XML高精度解析规则（核心优先链路）
+    xml_digital_invoice_ext:
+      enable: true
+      parse_engine: lxml.etree
+      xml_root_key: "Invoice"
+      field_mapping: # XML节点→程序标准字段映射
+        invoice_no: //InvoiceCodeAndNo
+        buyer_name: //BuyerName
+        seller_name: //SellerName
+        buyer_tax_id: //BuyerTaxID
+        invoice_date: //IssueDate
+        amt_ex_tax: //AmountWithoutTax
+        tax_amt: //TaxAmount
+        total_amt: //TotalAmount
+        remark: //Remark
+      data_clean:
+        date_unify: "%Y-%m-%d"
+        numeric_strip: true # 去除金额中文符号、千分位逗号
+        empty_fill: null
+      xml_error_rule:
+        xml_parse_fail_move: true
+        fail_save_dir: ./data/xml_parse_fail/
+
+    # 扩展2：PDF混合解析（原生文字直接读，扫描件OCR兜底）
+    pdf_ocr_ext:
+      native_text_first: true
+      ocr_engine: pytesseract
+      ocr_lang: ["chi_sim","eng"]
+      dpi: 300
+      img_enhance: true
+      regex_extract:
+        invoice_no: "发票号码[:：](\\d{8})"
+        buyer_name: "购买方名称[:：](.*?)(纳税人识别号|$)"
+        invoice_date: "开票日期[:：](\\d{4}[-年]\\d{1,2}[-月]\\d{1,2})"
+        total_amt: "价税合计.*?([0-9.]+)"
+      ocr_low_quality_mark: true
+
+  bank_flow:
+    support_suffix: [xlsx, csv]
+    required_fields:
+      trade_date
+      counterparty_name
+      income
+      expense
+      trade_note
+      flow_serial_no
+    ignore_keyword: ["手续费","利息","工本费","年费"]
+
+# 3 核心匹配逻辑（精简四层优先级，无冗余合并规则）
+match_core_logic:
+  match_priority:
+    1: XML数电票精准字段 + 总金额完全一致 + 户名精准匹配 + 日期区间内
+    2: 原生PDF文字提取 + 金额±0.01容差 + 户名模糊≥85分
+    3: OCR扫描发票识别数据 + 备注发票号/合同号匹配 + 金额匹配
+    4: 同一客户7日内多笔小额流水合并匹配单张大票
+  merge_small_flow: true
+  merge_day_window: 7
+
+# 4 输出报表（精简6张核心工作表，删除多余统计页）
+output_sheets:
+  sheet1: 已匹配对账明细 | 标注数据来源(XML/原生PDF/OCR/Excel)
+  sheet2: 未核销发票清单 | 无对应银行收支
+  sheet3: 无票银行流水 | 无对应发票，标记税务风险
+  sheet4: 往来差额汇总 | 客户应收应付差额、超期统计
+  sheet5: 财税风险预警清单
+  sheet6: 解析异常单据 | XML解析失败 / OCR识别残缺票据
+  export_suffix: "_对账结果_{{now()}}.xlsx"
+
+# 5 精简风险规则（只保留金税四期核心风险项）
+risk_rules:
+  risk1: 单笔≥50000无票支出 | 高风险
+  risk2: 开票超30天无回款 | 中风险
+  risk3: 预收大额资金超30天未开票 | 税务预警
+  risk4: OCR识别缺失≥3个关键字段 / XML解析报错 | 人工复核
+
+# 6 极简执行流水线（按解析优先级执行，减少无效步骤）
+execute_pipeline:
+  step1: 遍历发票目录，按【XML>PDF原生>PDF扫描OCR】优先级分流文件
+  step2: XML文件lxml解析，标准化字段；PDF分流读取/ocr识别；Excel直接载入
+  step3: 清洗银行流水，过滤手续费等无关收支，统一日期、金额格式
+  step4: 四层优先级匹配发票与流水，合并同客户多笔小额流水
+  step5: 计算往来差额、账期、超期天数，绑定风险标记
+  step6: 生成6合一Excel对账报表，写入文件来源标识
+  step7: 移动XML/OCR解析失败单据至对应故障目录
+  step8: 自动清空OCR临时图片缓存
+  step9: 输出极简对账简报
+
+# 7 极简运行简报模板
+summary_template: |
+====== 核心对账完成简报 ======
+对账时间: {{now()}}
+XML数电票解析: {{xml_count}} 份
+原生PDF发票: {{pdf_text_count}} 份
+OCR扫描识别发票: {{ocr_count}} 份
+解析失败单据: {{parse_fail}} 份
+银行流水总笔数: {{flow_total}}
+成功匹配组数: {{match_success}}
+匹配率: {{match_rate}}%
+未核销发票: {{unmatch_inv}}
+无票收支流水: {{unmatch_flow}}
+风险单据总数: {{risk_total}}
+报表路径: {{result_file}}
+==============================
