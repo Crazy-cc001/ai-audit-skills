@@ -10,6 +10,8 @@ trigger:
   - 提取基本情况表
 ---
 
+> 演示视频：[docs/demos/pdf-data-extraction.gif](../../docs/demos/pdf-data-extraction.gif)
+
 # PDF信息提取汇总技能
 
 把一叠PDF按"找关键词页面 → 转Word → 清洗 → 汇总Excel"四步流水线处理，最终输出一张Excel汇总表。找不到《基本情况表》或表格提取失败时，流水线会自动**兜底提取**（步骤5，见下）。

@@ -4,6 +4,8 @@ description: 把银行材料（对账单 / 回单）解析成结构化流水，�
 agent_created: true
 ---
 
+> 演示视频：[docs/demos/bank-statement-reconcile.gif](../../docs/demos/bank-statement-reconcile.gif)
+
 # 银行流水 × 记账凭证 核对
 
 ## 用途

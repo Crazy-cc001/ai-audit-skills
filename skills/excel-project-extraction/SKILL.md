@@ -10,6 +10,8 @@ trigger:
   - 机构筛选提取
 ---
 
+> 演示视频：[docs/demos/excel-project-extraction.gif](../../docs/demos/excel-project-extraction.gif)
+
 # Excel项目批量提取技能
 
 按"Excel解析筛选 → 源目录检索复制 → 批量提取投标人信息 → 汇总输出 → 去重校验"五步流水线，把带填充色标记的抽查清单转化为每项目一份的《投标人信息汇总表》。

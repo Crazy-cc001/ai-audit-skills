@@ -36,6 +36,22 @@
 
 ---
 
+## 演示
+
+> 以下视频均使用**合成数据**，仅用于展示「输入 → 处理 → 输出」的流程。点 GIF 看动画，点标题下载 MP4。
+
+| 发票 × 银行流水对账 | 银行对账单 × 凭证核对 |
+|---|---|
+| [![发票对账](docs/demos/invoice-bank-reconciliation.gif)](docs/demos/invoice-bank-reconciliation.mp4) | [![银行对账](docs/demos/bank-statement-reconcile.gif)](docs/demos/bank-statement-reconcile.mp4) |
+| **审计底稿自动编制** | **招采项目合规审核** |
+| [![审计底稿](docs/demos/audit-working-papers.gif)](docs/demos/audit-working-papers.mp4) | [![招采审核](docs/demos/public-procurement-audit.gif)](docs/demos/public-procurement-audit.mp4) |
+| **PDF 信息批量提取** | **Excel 项目批量提取** |
+| [![PDF 提取](docs/demos/pdf-data-extraction.gif)](docs/demos/pdf-data-extraction.mp4) | [![Excel 提取](docs/demos/excel-project-extraction.gif)](docs/demos/excel-project-extraction.mp4) |
+
+[查看完整演示合集](docs/demos/README.md)
+
+---
+
 ## 1. 发票 × 银行流水自动对账
 
 **你原来怎么做**：把发票台账和银行流水并排放，VLOOKUP 一列列对，遇到红冲、部分回款、多笔小额合并就卡住。

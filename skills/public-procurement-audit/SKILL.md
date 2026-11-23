@@ -13,6 +13,8 @@ trigger:
   - 围标串标检查
 ---
 
+> 演示视频：[docs/demos/public-procurement-audit.gif](../../docs/demos/public-procurement-audit.gif)
+
 # 招采项目审核技能
 
 对招采项目（政府采购、工程招标投标）进行全流程合规审核。法规依据覆盖国家、安徽省、合肥市及区县现行规定。

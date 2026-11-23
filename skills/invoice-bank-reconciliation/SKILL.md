@@ -10,6 +10,8 @@ trigger:
   - 应收应付核对
 ---
 
+> 演示视频：[docs/demos/invoice-bank-reconciliation.gif](../../docs/demos/invoice-bank-reconciliation.gif)
+
 # 发票&银行流水自动对账
 
 以资深总账会计/代账实操专家角色执行全盘账务对账：销项发票对回款、进项发票对付款、银行/第三方商户（企业微信/支付宝）流水核对，输出标准化对账成果，操作流程零基础会计也能看懂。
